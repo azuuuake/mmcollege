@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { JobFormPage } from "./pages/JobFormPage";
 import { JobsPage } from "./pages/JobsPage";
+import { EntryPage } from "./pages/EntryPage";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MessagesPage } from "./pages/MessagesPage";
@@ -19,8 +20,10 @@ import { SearchPage } from "./pages/SearchPage";
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<EntryPage />} />
+
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/welcome" element={<LandingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/professionals" element={<SearchPage />} />
         <Route path="/professionals/:id" element={<PublicProfilePage />} />

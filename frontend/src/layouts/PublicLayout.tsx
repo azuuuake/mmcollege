@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const links = [
-  { to: "/", label: "Home" },
+  { to: "/welcome", label: "Home" },
   { to: "/professionals", label: "Find Professionals" },
   { to: "/jobs", label: "Jobs" },
   { to: "/about", label: "About" }
@@ -16,7 +16,7 @@ export function PublicLayout() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-cream-200/80 bg-cream-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <Link to="/" className="font-display text-2xl">
+          <Link to="/welcome" className="font-display text-2xl">
             MM Connect
           </Link>
           <nav className="hidden items-center gap-6 text-sm md:flex">
@@ -25,7 +25,7 @@ export function PublicLayout() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) => (isActive ? "font-semibold text-rose-600" : "text-ink-700 hover:text-ink-950")}
-                end={link.to === "/"}
+                end={link.to === "/welcome"}
               >
                 {link.label}
               </NavLink>
@@ -41,7 +41,7 @@ export function PublicLayout() {
                 <Link className="btn-ghost hidden sm:inline-flex" to="/login">
                   Login
                 </Link>
-                <Link className="btn-primary" to="/register">
+                <Link className="btn-primary" to="/">
                   Sign up
                 </Link>
               </>
