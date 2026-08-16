@@ -2,6 +2,8 @@
 
 PostgreSQL 16 with Prisma ORM. Schema lives in `database/prisma/schema.prisma`. All IDs are UUIDs.
 
+For a full column list, live row snapshot, and foreign-key map, see [database-map.md](database-map.md).
+
 ## 1. Entity relationship overview
 
 ```

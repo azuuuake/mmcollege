@@ -134,6 +134,7 @@ Full reference: [docs/api.md](docs/api.md)
 - [Requirements and MVP assumptions](docs/requirements.md)
 - [Architecture](docs/architecture.md)
 - [Database](docs/database.md)
+- [Database map (columns, rows, connections)](docs/database-map.md)
 - [API](docs/api.md)
 - [Implementation plan](docs/implementation-plan.md)
 
