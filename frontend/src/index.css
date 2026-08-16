@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #1a1410;
+  background: #fbf7f2;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.font-display {
+  letter-spacing: -0.02em;
+}
+
+.input {
+  @apply w-full rounded-lg border border-cream-200 bg-white px-3 py-2.5 text-sm text-ink-950 outline-none transition focus:border-rose-600 focus:ring-2 focus:ring-rose-600/10;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply btn bg-rose-600 text-white hover:bg-rose-700;
+}
+
+.btn-secondary {
+  @apply btn border border-ink-950/15 bg-white text-ink-950 hover:border-ink-950/30;
+}
+
+.btn-ghost {
+  @apply btn text-ink-900 hover:bg-cream-100;
+}
+
+.card {
+  @apply rounded-2xl border border-cream-200 bg-white shadow-card;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+}
