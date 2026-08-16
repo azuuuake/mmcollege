@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  HAIRDRESSER
+  EMPLOYER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum EmploymentStatus {
+  EMPLOYED
+  SEEKING
+  OPEN_TO_OPPORTUNITIES
+  NOT_LOOKING
+}
+
+enum Availability {
+  IMMEDIATE
+  TWO_WEEKS
+  ONE_MONTH
+  FLEXIBLE
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CASUAL
+  CONTRACT
+  APPRENTICESHIP
+}
+
+enum CredentialStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum ApplicationStatus {
+  INTERESTED
+  WITHDRAWN
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  PROFILE
+  PORTFOLIO
+  MESSAGE
+  JOB
+}
+
+enum NotificationType {
+  MESSAGE
+  APPLICATION
+  VERIFICATION
+  JOB_MATCH
+  SYSTEM
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         Role
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  hairdresserProfile HairdresserProfile?
+  employerProfile    EmployerProfile?
+
+  conversationsA Conversation[] @relation("ConversationParticipantA")
+  conversationsB Conversation[] @relation("ConversationParticipantB")
+  sentMessages   Message[]      @relation("MessageSender")
+
+  notifications       Notification[]
+  reportsMade         Report[]              @relation("Reporter")
+  reportsAgainst      Report[]              @relation("ReportedUser")
+  auditLogs           AuditLog[]
+  passwordResetTokens PasswordResetToken[]
+  verifications       CredentialVerification[]
+
+  @@index([role, status])
+}
+
+model HairdresserProfile {
+  id                      String            @id @default(uuid())
+  userId                  String            @unique
+  user                    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName               String
+  lastName                String
+  profilePhotoUrl         String?
+  phone                   String?
+  location                String?
+  suburb                  String?
+  state                   String?
+  postcode                String?
+  bio                     String?
+  professionalTitle       String?
+  yearsOfExperience       Int               @default(0)
+  employmentStatus        EmploymentStatus?
+  availability            Availability?
+  preferredEmploymentType EmploymentType?
+  profileViews            Int               @default(0)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  skills           HairdresserSkill[]
+  credentials      Credential[]
+  workExperiences  WorkExperience[]
+  portfolioItems   PortfolioItem[]
+  applications     Application[]
+
+  @@index([state, suburb])
+  @@index([yearsOfExperience])
+  @@index([availability])
+}
+
+model EmployerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName String
+  logoUrl      String?
+  description  String?
+  location     String?
+  suburb       String?
+  state        String?
+  website      String?
+  phone        String?
+  contactEmail String?
+  businessType String?
+  profileViews Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  jobs Job[]
+}
+
+model Skill {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  category    String?
+  isActive    Boolean @default(true)
+
+  hairdresserSkills HairdresserSkill[]
+  jobSkills         JobSkill[]
+}
+
+model HairdresserSkill {
+  id                   String             @id @default(uuid())
+  hairdresserProfileId String
+  hairdresserProfile   HairdresserProfile @relation(fields: [hairdresserProfileId], references: [id], onDelete: Cascade)
+  skillId              String
+  skill                Skill              @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([hairdresserProfileId, skillId])
+}
+
+model Qualification {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  level    String?
+  isActive Boolean @default(true)
+
+  credentials Credential[]
+  jobs        Job[]
+}
+
+model Credential {
+  id                  String             @id @default(uuid())
+  hairdresserProfileId String
+  hairdresserProfile  HairdresserProfile @relation(fields: [hairdresserProfileId], references: [id], onDelete: Cascade)
+  qualificationId     String?
+  qualification       Qualification?     @relation(fields: [qualificationId], references: [id])
+  qualificationName   String
+  issuingOrganisation String
+  credentialNumber    String?
+  issueDate           DateTime?
+  expiryDate          DateTime?
+  documentKey         String?
+  status              CredentialStatus   @default(PENDING)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  verifications CredentialVerification[]
+
+  @@index([status])
+  @@index([hairdresserProfileId, status])
+}
+
+model CredentialVerification {
+  id           String           @id @default(uuid())
+  credentialId String
+  credential   Credential       @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User             @relation(fields: [reviewerId], references: [id])
+  status       CredentialStatus
+  notes        String?
+  verifiedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([credentialId, createdAt])
+}
+
+model WorkExperience {
+  id                   String             @id @default(uuid())
+  hairdresserProfileId String
+  hairdresserProfile   HairdresserProfile @relation(fields: [hairdresserProfileId], references: [id], onDelete: Cascade)
+  employerName         String
+  position             String
+  startDate            DateTime
+  endDate              DateTime?
+  description          String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model PortfolioItem {
+  id                   String             @id @default(uuid())
+  hairdresserProfileId String
+  hairdresserProfile   HairdresserProfile @relation(fields: [hairdresserProfileId], references: [id], onDelete: Cascade)
+  imageUrl             String
+  title                String
+  description          String?
+  category             String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model Job {
+  id                      String          @id @default(uuid())
+  employerProfileId       String
+  employerProfile         EmployerProfile @relation(fields: [employerProfileId], references: [id], onDelete: Cascade)
+  title                   String
+  description             String
+  location                String
+  employmentType          EmploymentType
+  salaryMin               Int?
+  salaryMax               Int?
+  salaryDisplay           String?
+  requiredExperienceYears Int?
+  requiredQualificationId String?
+  requiredQualification   Qualification?  @relation(fields: [requiredQualificationId], references: [id])
+  status                  JobStatus       @default(DRAFT)
+  postedAt                DateTime?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  requiredSkills JobSkill[]
+  applications   Application[]
+
+  @@index([status, postedAt])
+  @@index([employerProfileId, status])
+}
+
+model JobSkill {
+  id      String @id @default(uuid())
+  jobId   String
+  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, skillId])
+}
+
+model Application {
+  id                   String             @id @default(uuid())
+  jobId                String
+  job                  Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  hairdresserProfileId String
+  hairdresserProfile   HairdresserProfile @relation(fields: [hairdresserProfileId], references: [id], onDelete: Cascade)
+  coverNote            String?
+  status               ApplicationStatus  @default(INTERESTED)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@unique([jobId, hairdresserProfileId])
+  @@index([hairdresserProfileId])
+}
+
+model Conversation {
+  id             String   @id @default(uuid())
+  participantAId String
+  participantA   User     @relation("ConversationParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantBId String
+  participantB   User     @relation("ConversationParticipantB", fields: [participantBId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  messages Message[]
+
+  @@unique([participantAId, participantBId])
+  @@index([participantAId, updatedAt])
+  @@index([participantBId, updatedAt])
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  linkUrl   String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Report {
+  id             String           @id @default(uuid())
+  reporterId     String
+  reporter       User             @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUserId String?
+  reportedUser   User?            @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  targetType     ReportTargetType
+  targetId       String
+  reason         String
+  status         ReportStatus     @default(OPEN)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
